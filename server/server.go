@@ -30,7 +30,7 @@ func StartServer() {
 	if err != nil {
 		log.Fatalf("unable to load dynamoDB tables, %v", err)
 	}
-	fmt.Printf("Connected to DynamoDB\n")
+	log.Printf("Connected to DynamoDB\n")
 
 	// connect with S3
 	s3Client := s3.NewFromConfig(cfg)
@@ -38,7 +38,7 @@ func StartServer() {
 	if err != nil {
 		log.Fatalf("unable to load S3 buckets, %v", err)
 	}
-	fmt.Printf("Connected to S3\n")
+	log.Printf("Connected to S3\n")
 
 	// connect with OpenAI
 	aiClient := ai.Open()

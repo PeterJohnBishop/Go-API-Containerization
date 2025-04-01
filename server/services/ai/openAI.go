@@ -21,5 +21,6 @@ func Open() *openai.Client {
 	client := openai.NewClient(
 		option.WithAPIKey(key),
 	)
+	log.Printf("Connected to OpenAI\n")
 	return &client
 }
