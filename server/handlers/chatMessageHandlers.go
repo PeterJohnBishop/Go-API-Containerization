@@ -62,7 +62,7 @@ func CreateChat(client *dynamodb.Client, w http.ResponseWriter, r *http.Request)
 
 	newChat := map[string]types.AttributeValue{
 		"id":     &types.AttributeValueMemberS{Value: chatId},
-		"active": &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", time.Now().Unix())},
+		"active": &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", time.Now().UnixMilli())},
 	}
 
 	if len(chat.Messages) > 0 {
@@ -133,7 +133,7 @@ func CreateChatMessage(client *dynamodb.Client, w http.ResponseWriter, r *http.R
 	newMessage := map[string]types.AttributeValue{
 		"id":     &types.AttributeValueMemberS{Value: messageId},
 		"sender": &types.AttributeValueMemberS{Value: message.Sender},
-		"date":   &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", time.Now().Unix())},
+		"date":   &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", time.Now().UnixMilli())},
 	}
 
 	if message.Text != "" {

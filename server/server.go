@@ -48,6 +48,7 @@ func StartServer() {
 	addChatMessageRoutes(dynamoClient, mux)
 	addFileIORoutes(s3Client, mux)
 	addAIRoutes(aiClient, mux)
+	addEventRoutes(dynamoClient, mux)
 
 	fmt.Println("Server started on port 8080")
 	err = http.ListenAndServe(":8080", mux)
@@ -132,4 +133,24 @@ func addFileIORoutes(client *s3.Client, mux *http.ServeMux) {
 
 func addAIRoutes(client *openai.Client, mux *http.ServeMux) {
 	// ready for routes!
+}
+
+func addEventRoutes(client *dynamodb.Client, mux *http.ServeMux) {
+	mux.HandleFunc("/events/new", services.LoggerMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreateEventHandler(client, w, r)
+	}))
+	mux.HandleFunc("/events/event/{id}", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		handlers.GetEventById(client, w, r, id)
+	})))
+	mux.HandleFunc("/events/all", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetAllEvents(client, w, r)
+	})))
+	mux.HandleFunc("/events/event/update", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		handlers.UpdateChat(client, w, r)
+	})))
+	mux.HandleFunc("/events/event/{id}/delete", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		handlers.DeleteEvent(client, w, r, id)
+	})))
 }
