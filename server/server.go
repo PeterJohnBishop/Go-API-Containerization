@@ -7,28 +7,32 @@ import (
 	"net/http"
 	"upgraded-telegram/main.go/server/handlers"
 	"upgraded-telegram/main.go/server/services"
+	"upgraded-telegram/main.go/server/services/ai"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/openai/openai-go"
 )
 
 func StartServer() {
 
 	mux := http.NewServeMux()
 
+	// connect with AWS
 	cfg, err := services.StartAws()
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
+	// connect with DynamoDB
 	dynamoClient := dynamodb.NewFromConfig(cfg)
-
 	_, err = GetTables(dynamoClient)
 	if err != nil {
 		log.Fatalf("unable to load dynamoDB tables, %v", err)
 	}
 	fmt.Printf("Connected to DynamoDB\n")
 
+	// connect with S3
 	s3Client := s3.NewFromConfig(cfg)
 	_, err = s3Client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
 	if err != nil {
@@ -36,10 +40,14 @@ func StartServer() {
 	}
 	fmt.Printf("Connected to S3\n")
 
+	// connect with OpenAI
+	aiClient := ai.Open()
+
 	services.InitAuth()
 	addUserRoutes(dynamoClient, mux)
 	addChatMessageRoutes(dynamoClient, mux)
 	addFileIORoutes(s3Client, mux)
+	addAIRoutes(aiClient, mux)
 
 	fmt.Println("Server started on port 8080")
 	err = http.ListenAndServe(":8080", mux)
@@ -120,4 +128,8 @@ func addFileIORoutes(client *s3.Client, mux *http.ServeMux) {
 	mux.HandleFunc("/download", services.LoggerMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		handlers.HandleFileDownload(client, w, r)
 	}))
+}
+
+func addAIRoutes(client *openai.Client, mux *http.ServeMux) {
+	// ready for routes!
 }
