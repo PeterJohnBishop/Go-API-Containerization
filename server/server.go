@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"upgraded-telegram/main.go/server/handlers"
 	"upgraded-telegram/main.go/server/services"
 	"upgraded-telegram/main.go/server/services/ai"
 
+	"googlemaps.github.io/maps"
+
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/joho/godotenv"
 	"github.com/openai/openai-go"
 )
 
@@ -43,12 +47,24 @@ func StartServer() {
 	// connect with OpenAI
 	aiClient := ai.Open()
 
+	err = godotenv.Load("server/.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	mapsKey := os.Getenv("GOOGLE_MAPS_API_KEY")
+
+	mapClient, err := maps.NewClient(maps.WithAPIKey(mapsKey))
+	if err != nil {
+		log.Fatalf("fatal error: %s", err)
+	}
+
 	services.InitAuth()
 	addUserRoutes(dynamoClient, mux)
 	addChatMessageRoutes(dynamoClient, mux)
 	addFileIORoutes(s3Client, mux)
 	addAIRoutes(aiClient, mux)
 	addEventRoutes(dynamoClient, mux)
+	addMapRoutes(mapClient, mux)
 
 	fmt.Println("Server started on port 8080")
 	err = http.ListenAndServe(":8080", mux)
@@ -153,4 +169,10 @@ func addEventRoutes(client *dynamodb.Client, mux *http.ServeMux) {
 		id := r.PathValue("id")
 		handlers.DeleteEvent(client, w, r, id)
 	})))
+}
+
+func addMapRoutes(client *maps.Client, mux *http.ServeMux) {
+	mux.HandleFunc("/maps/route", services.LoggerMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetDirections(client, w, r)
+	}))
 }
