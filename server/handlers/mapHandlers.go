@@ -53,7 +53,74 @@ func GetDirections(client *maps.Client, w http.ResponseWriter, r *http.Request, 
 	w.Write(jsonResponse)
 }
 
+func Geocode(client *maps.Client, w http.ResponseWriter, r *http.Request, address string) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, `{"error": "Authorization header"}`, http.StatusInternalServerError)
+		return
+	}
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	if token == authHeader {
+		http.Error(w, `{"error": "Invalid token format"}`, http.StatusInternalServerError)
+		return
+	}
+	claims := services.ParseAccessToken(token)
+	if claims == nil {
+		http.Error(w, `{"error": "Failed to verify token"}`, http.StatusInternalServerError)
+		return
+	}
+
+	result, err := mapping.Geocode(client, address)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to geocode address"}`, http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"message": "Geocoding successful!",
+		"route":   result,
+	}
+
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to encode response"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}
+
 func ReverseGeocode(client *maps.Client, w http.ResponseWriter, r *http.Request, lat string, long string) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, `{"error": "Authorization header"}`, http.StatusInternalServerError)
+		return
+	}
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	if token == authHeader {
+		http.Error(w, `{"error": "Invalid token format"}`, http.StatusInternalServerError)
+		return
+	}
+	claims := services.ParseAccessToken(token)
+	if claims == nil {
+		http.Error(w, `{"error": "Failed to verify token"}`, http.StatusInternalServerError)
+		return
+	}
+
 	lat64, err := strconv.ParseFloat(lat, 64)
 	if err != nil {
 		http.Error(w, `{"error": "Failed to convert latitude to float64"}`, http.StatusInternalServerError)

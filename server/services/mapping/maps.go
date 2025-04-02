@@ -40,6 +40,17 @@ func GetRoute(client *maps.Client, origin string, destination string) ([]maps.Ro
 	return route, nil
 }
 
+func Geocode(client *maps.Client, address string) ([]maps.GeocodingResult, error) {
+	r := &maps.GeocodingRequest{
+		Address: address,
+	}
+	geocodingResponse, err := client.Geocode(context.Background(), r)
+	if err != nil {
+		return nil, err
+	}
+	return geocodingResponse, nil
+}
+
 func ReverseGeocode(client *maps.Client, lat float64, long float64) ([]maps.GeocodingResult, error) {
 	r := &maps.GeocodingRequest{
 		LatLng: &maps.LatLng{Lat: lat, Lng: long},
