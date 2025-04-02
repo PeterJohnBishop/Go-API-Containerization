@@ -9,6 +9,8 @@ import (
 	"googlemaps.github.io/maps"
 )
 
+// repo and documentation https://github.com/googlemaps/google-maps-services-go?tab=readme-ov-file
+
 func FindMaps() *maps.Client {
 	err := godotenv.Load("server/.env")
 	if err != nil {
@@ -36,4 +38,15 @@ func GetRoute(client *maps.Client, origin string, destination string) ([]maps.Ro
 	}
 
 	return route, nil
+}
+
+func ReverseGeocode(client *maps.Client, lat float64, long float64) ([]maps.GeocodingResult, error) {
+	r := &maps.GeocodingRequest{
+		LatLng: &maps.LatLng{Lat: lat, Lng: long},
+	}
+	reverseGeocodingResponse, err := client.ReverseGeocode(context.Background(), r)
+	if err != nil {
+		return nil, err
+	}
+	return reverseGeocodingResponse, nil
 }

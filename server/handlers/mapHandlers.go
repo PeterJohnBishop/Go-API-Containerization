@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"upgraded-telegram/main.go/server/services"
@@ -50,5 +51,37 @@ func GetDirections(client *maps.Client, w http.ResponseWriter, r *http.Request, 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
+}
 
+func ReverseGeocode(client *maps.Client, w http.ResponseWriter, r *http.Request, lat string, long string) {
+	lat64, err := strconv.ParseFloat(lat, 64)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to convert latitude to float64"}`, http.StatusInternalServerError)
+		return
+	}
+	long64, err := strconv.ParseFloat(long, 64)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to convert longitude to float64"}`, http.StatusInternalServerError)
+		return
+	}
+	result, err := mapping.ReverseGeocode(client, lat64, long64)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to reverse geocode coordinates"}`, http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"message": "Reverse Geocoding successful!",
+		"route":   result,
+	}
+
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to encode response"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
 }

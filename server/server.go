@@ -168,4 +168,9 @@ func addMapRoutes(client *maps.Client, mux *http.ServeMux) {
 		b := r.PathValue("destination")
 		handlers.GetDirections(client, w, r, a, b)
 	})))
+	mux.HandleFunc("/maps/reversegeocode/lat/{lat}/long/{long}", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		long := r.PathValue("long")
+		lat := r.PathValue("lat")
+		handlers.ReverseGeocode(client, w, r, lat, long)
+	})))
 }
