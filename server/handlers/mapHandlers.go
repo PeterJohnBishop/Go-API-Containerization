@@ -1,23 +1,40 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
-	"log"
 	"net/http"
+	"strings"
+
+	"upgraded-telegram/main.go/server/services"
+	"upgraded-telegram/main.go/server/services/mapping"
 
 	"googlemaps.github.io/maps"
 )
 
-func GetDirections(client *maps.Client, w http.ResponseWriter, r *http.Request) {
-	req := &maps.DirectionsRequest{
-		Origin:      "Sydney",
-		Destination: "Perth",
+func GetDirections(client *maps.Client, w http.ResponseWriter, r *http.Request, a string, b string) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
-	route, _, err := client.Directions(context.Background(), req)
-	if err != nil {
-		log.Fatalf("fatal error: %s", err)
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, `{"error": "Authorization header"}`, http.StatusInternalServerError)
+		return
 	}
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	if token == authHeader {
+		http.Error(w, `{"error": "Invalid token format"}`, http.StatusInternalServerError)
+		return
+	}
+	claims := services.ParseAccessToken(token)
+	if claims == nil {
+		http.Error(w, `{"error": "Failed to verify token"}`, http.StatusInternalServerError)
+		return
+	}
+
+	route, err := mapping.GetRoute(client, a, b)
 
 	response := map[string]interface{}{
 		"message": "Route Found!",

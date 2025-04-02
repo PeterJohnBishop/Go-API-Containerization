@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"upgraded-telegram/main.go/server/handlers"
 	"upgraded-telegram/main.go/server/services"
 	"upgraded-telegram/main.go/server/services/ai"
+	"upgraded-telegram/main.go/server/services/mapping"
 
 	"googlemaps.github.io/maps"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/joho/godotenv"
 	"github.com/openai/openai-go"
 )
 
@@ -47,16 +46,8 @@ func StartServer() {
 	// connect with OpenAI
 	aiClient := ai.Open()
 
-	err = godotenv.Load("server/.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	mapsKey := os.Getenv("GOOGLE_MAPS_API_KEY")
-
-	mapClient, err := maps.NewClient(maps.WithAPIKey(mapsKey))
-	if err != nil {
-		log.Fatalf("fatal error: %s", err)
-	}
+	// connect with Google Maps
+	mapClient := mapping.FindMaps()
 
 	services.InitAuth()
 	addUserRoutes(dynamoClient, mux)
@@ -172,7 +163,9 @@ func addEventRoutes(client *dynamodb.Client, mux *http.ServeMux) {
 }
 
 func addMapRoutes(client *maps.Client, mux *http.ServeMux) {
-	mux.HandleFunc("/maps/route", services.LoggerMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetDirections(client, w, r)
-	}))
+	mux.HandleFunc("/maps/from/{origin}/to/{destination}", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		a := r.PathValue("origin")
+		b := r.PathValue("destination")
+		handlers.GetDirections(client, w, r, a, b)
+	})))
 }
