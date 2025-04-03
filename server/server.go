@@ -1,13 +1,14 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"upgraded-telegram/main.go/server/handlers"
 	"upgraded-telegram/main.go/server/services"
 	"upgraded-telegram/main.go/server/services/ai"
+	"upgraded-telegram/main.go/server/services/db"
+	"upgraded-telegram/main.go/server/services/fileIO"
 	"upgraded-telegram/main.go/server/services/mapping"
 
 	"googlemaps.github.io/maps"
@@ -22,26 +23,13 @@ func StartServer() {
 	mux := http.NewServeMux()
 
 	// connect with AWS
-	cfg, err := services.StartAws()
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
+	cfg := services.StartAws()
 
 	// connect with DynamoDB
-	dynamoClient := dynamodb.NewFromConfig(cfg)
-	_, err = GetTables(dynamoClient)
-	if err != nil {
-		log.Fatalf("unable to load dynamoDB tables, %v", err)
-	}
-	log.Printf("Connected to DynamoDB\n")
+	dynamoClient := db.ConnectDB(cfg)
 
 	// connect with S3
-	s3Client := s3.NewFromConfig(cfg)
-	_, err = s3Client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
-	if err != nil {
-		log.Fatalf("unable to load S3 buckets, %v", err)
-	}
-	log.Printf("Connected to S3\n")
+	s3Client := fileIO.ConnectS3(cfg)
 
 	// connect with OpenAI
 	aiClient := ai.Open()
@@ -58,19 +46,10 @@ func StartServer() {
 	addMapRoutes(mapClient, mux)
 
 	fmt.Println("Server started on port 8080")
-	err = http.ListenAndServe(":8080", mux)
+	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Fatalf("unable to load dynamoDB tables, %v", err)
 	}
-}
-
-func GetTables(client *dynamodb.Client) ([]string, error) {
-
-	result, err := client.ListTables(context.TODO(), &dynamodb.ListTablesInput{})
-	if err != nil {
-		return nil, err
-	}
-	return result.TableNames, nil
 }
 
 func addUserRoutes(client *dynamodb.Client, mux *http.ServeMux) {

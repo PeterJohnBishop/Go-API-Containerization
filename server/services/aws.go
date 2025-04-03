@@ -11,7 +11,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func StartAws() (aws.Config, error) {
+func StartAws() aws.Config {
 
 	err := godotenv.Load("server/.env")
 	if err != nil {
@@ -28,7 +28,7 @@ func StartAws() (aws.Config, error) {
 		config.WithCredentialsProvider(aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(accessKey, secretKey, ""))),
 	)
 	if err != nil {
-		return cfg, err
+		log.Fatal("Error loading AWS Config.")
 	}
-	return cfg, nil
+	return cfg
 }

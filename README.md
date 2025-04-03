@@ -1,8 +1,21 @@
 # upgraded-telegram
 
-Create authenticated users.
+API's and Implementations
 
-Send messages with text and media.
+Go Http/Net server 
 
-Interact with AI (OpenAI)
+- JWT Authenticated Routes
 
+- DynamoDB
+    + users
+    + messaging
+    + events
+
+- S3
+    + upload
+    + download
+
+- Google Maps
+    + Routing (directions)
+    + Geocode
+    + Reverse Geocode
