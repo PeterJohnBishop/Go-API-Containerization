@@ -39,3 +39,23 @@ type Event struct {
 	CreatedAt          int64    `json:"created_at"`
 	UpdatedAt          int64    `json:"updated_at"`
 }
+
+type Item struct {
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Images      []string `json:"images"`
+	Price       int64    `json:"price"`
+	Inventory   int      `json:"inventory"`
+	Active      bool     `json:"active"`
+	CreatedAt   int64    `json:"created_at"`
+	UpdatedAt   int64    `json:"updated_at"`
+}
+
+type Order struct {
+	ID     string   `json:"id"`
+	User   string   `json:"user"`
+	Items  []string `json:"items"`
+	Total  int64    `json:"total"`
+	Status string   `json:"status"`
+}

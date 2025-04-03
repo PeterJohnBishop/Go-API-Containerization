@@ -30,7 +30,7 @@ var (
 
 // Load .env once at startup
 func InitAuth() {
-	err := godotenv.Load("server/.env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}

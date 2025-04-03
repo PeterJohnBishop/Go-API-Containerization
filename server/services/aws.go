@@ -13,7 +13,7 @@ import (
 
 func StartAws() aws.Config {
 
-	err := godotenv.Load("server/.env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}

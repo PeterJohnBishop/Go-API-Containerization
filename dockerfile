@@ -1,36 +1,28 @@
-# Build Stage
-FROM golang:1.23 AS builder
+FROM golang:1.23.5 AS builder
 
 WORKDIR /app
-
-# Copy Go modules files and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
-
-# Copy the entire source code
 COPY . .
 
-# Build the Go application
-RUN go build -o /app/main .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
 
-# Final Runtime Stage
 FROM alpine:latest
 
 WORKDIR /root/
+COPY --from=builder /app/main .
+COPY .env .  
 
-# Install libc (needed for Go binaries on Alpine)
-RUN apk add --no-cache libc6-compat
+RUN chmod +x /root/main
 
-# Copy the built binary from the builder stage to the root folder
-COPY --from=builder /app/main /main
-
-# Ensure execution permissions
-RUN chmod +x /main
-
-# Expose the application port
 EXPOSE 8080
+CMD ["/root/main"]
 
-COPY .env .env
+# docker build -t go-http .   
+# docker run -p 8080:8080 -v $(pwd):/app go-http
+# docker login
+# docker tag go-http peterjbishop/go-http:latest
+# docker push peterjbishop/go-http:latest
 
-# Run the application
-CMD ["/main"]
+# docker pull peterjbishop/go-http:latest
+# docker run -p 8080:8080 peterjbishop/go-http

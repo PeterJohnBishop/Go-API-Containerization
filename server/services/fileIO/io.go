@@ -15,7 +15,7 @@ import (
 
 func UploadFile(client *s3.Client, filename string, fileContent multipart.File) (string, error) {
 
-	err := godotenv.Load("server/.env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -35,7 +35,7 @@ func UploadFile(client *s3.Client, filename string, fileContent multipart.File) 
 }
 
 func DownloadFile(client *s3.Client, filename string) (string, error) {
-	err := godotenv.Load("server/.env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}

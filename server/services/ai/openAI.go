@@ -11,7 +11,7 @@ import (
 
 func Open() *openai.Client {
 
-	err := godotenv.Load("server/.env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
