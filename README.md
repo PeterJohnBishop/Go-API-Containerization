@@ -1,5 +1,7 @@
 # upgraded-telegram
 
+A project starter providing Go Http server with JWT authenticated and rate limited endpoints. API provides user, messaging, and event CRUD operations on stored data in DynamoDB, file upload and download with S3, and basic routing, geocoding, and reverse geocoding through Google Maps API.
+
 # installation 
 
 docker pull peterjbishop/go-http
