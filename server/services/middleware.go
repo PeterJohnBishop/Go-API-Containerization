@@ -8,7 +8,10 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 type ResponseWriterWrapper struct {
@@ -107,4 +110,55 @@ func VerifyRefreshToken(next http.HandlerFunc) http.HandlerFunc {
 
 		next(w, r)
 	}
+}
+
+type RateLimiter struct {
+	limiters map[string]*rate.Limiter
+	mu       sync.Mutex
+	rate     rate.Limit
+	burst    int
+}
+
+func NewRateLimiter(r rate.Limit, b int) *RateLimiter {
+	return &RateLimiter{
+		limiters: make(map[string]*rate.Limiter),
+		rate:     r,
+		burst:    b,
+	}
+}
+
+func (rl *RateLimiter) GetLimiter(ip string) *rate.Limiter {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	if limiter, exists := rl.limiters[ip]; exists {
+		return limiter
+	}
+
+	limiter := rate.NewLimiter(rl.rate, rl.burst)
+	rl.limiters[ip] = limiter
+
+	// Cleanup old limiters periodically
+	go func() {
+		time.Sleep(10 * time.Minute)
+		rl.mu.Lock()
+		delete(rl.limiters, ip)
+		rl.mu.Unlock()
+	}()
+
+	return limiter
+}
+
+func (rl *RateLimiter) RateLimitMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := r.RemoteAddr // Get the client's IP address
+		limiter := rl.GetLimiter(ip)
+
+		if !limiter.Allow() {
+			http.Error(w, "Too many requests. Try again later.", http.StatusTooManyRequests)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

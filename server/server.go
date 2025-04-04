@@ -22,6 +22,10 @@ func StartServer() {
 
 	mux := http.NewServeMux()
 
+	// implement rate limiting
+	rateLimiter := services.NewRateLimiter(5, 10)
+	handler := rateLimiter.RateLimitMiddleware(mux)
+
 	// connect with AWS
 	cfg := services.StartAws()
 
@@ -46,7 +50,7 @@ func StartServer() {
 	addMapRoutes(mapClient, mux)
 
 	fmt.Println("Server started on port 8080")
-	err := http.ListenAndServe(":8080", mux)
+	err := http.ListenAndServe(":8080", handler)
 	if err != nil {
 		log.Fatalf("unable to load dynamoDB tables, %v", err)
 	}
