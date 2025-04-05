@@ -53,9 +53,11 @@ type Item struct {
 }
 
 type Order struct {
-	ID     string   `json:"id"`
-	User   string   `json:"user"`
-	Items  []string `json:"items"`
-	Total  int64    `json:"total"`
-	Status string   `json:"status"`
+	ID        string   `json:"id"`
+	User      string   `json:"user"`
+	Items     []string `json:"items"`
+	Total     int64    `json:"total"`
+	Status    string   `json:"status"`
+	CreatedAt int64    `json:"created_at"`
+	UpdatedAt int64    `json:"updated_at"`
 }
