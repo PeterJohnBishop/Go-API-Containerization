@@ -36,6 +36,10 @@ func GetDirections(client *maps.Client, w http.ResponseWriter, r *http.Request, 
 	}
 
 	route, err := mapping.GetRoute(client, a, b)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to get route"}`, http.StatusInternalServerError)
+		return
+	}
 
 	response := map[string]interface{}{
 		"message": "Route Found!",

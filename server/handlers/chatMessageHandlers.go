@@ -77,7 +77,7 @@ func CreateChat(client *dynamodb.Client, w http.ResponseWriter, r *http.Request)
 
 	response := map[string]interface{}{
 		"message": "Chat opened!",
-		"chat_id": chatId,
+		"chat.id": chatId,
 	}
 
 	jsonResponse, err := json.Marshal(response)
@@ -171,7 +171,9 @@ func CreateChatMessage(client *dynamodb.Client, w http.ResponseWriter, r *http.R
 	}
 
 	response := map[string]interface{}{
-		"message": "Chat message sent!",
+		"message":    "Chat message sent!",
+		"message.id": messageId,
+		"chat.id":    chatId,
 	}
 
 	jsonResponse, err := json.Marshal(response)

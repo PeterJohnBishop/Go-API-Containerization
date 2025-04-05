@@ -175,7 +175,7 @@ func GetAllItems(client *dynamodb.Client, w http.ResponseWriter, r *http.Request
 	var items []db.Item
 	err = attributevalue.UnmarshalListOfMaps(resp, &items)
 	if err != nil {
-		http.Error(w, `{"error": "Failed to decode chats"}`, http.StatusInternalServerError)
+		http.Error(w, `{"error": "Failed to decode items"}`, http.StatusInternalServerError)
 		return
 	}
 

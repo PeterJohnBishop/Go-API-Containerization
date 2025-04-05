@@ -123,7 +123,7 @@ func CreateEventHandler(client *dynamodb.Client, w http.ResponseWriter, r *http.
 
 	response := map[string]interface{}{
 		"message":  "Event saved!",
-		"event_id": eventId,
+		"event.id": eventId,
 	}
 
 	jsonResponse, err := json.Marshal(response)

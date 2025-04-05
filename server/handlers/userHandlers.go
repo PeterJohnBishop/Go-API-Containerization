@@ -61,7 +61,7 @@ func CreateUser(client *dynamodb.Client, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	message := fmt.Sprintf(`{"message": "User created successfully", "user_id": %s}`, userId)
+	message := fmt.Sprintf(`{"message": "User created successfully", "user.id": %s}`, userId)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(message))
