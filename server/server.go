@@ -51,24 +51,22 @@ func StartServer() {
 	addMapRoutes(mapClient, mux)
 	addItemRoutes(dynamoClient, mux)
 	addOrderRoutes(dynamoClient, mux)
-	mux.HandleFunc("/", services.LoggerMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			response := map[string]interface{}{
-				"message": "Welcome to Upgraded-Telegram Server!",
-				"updated": "2025-04-05",
-			}
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]interface{}{
+			"message": "Welcome to Upgraded-Telegram Server!",
+			"updated": "2025-04-05",
+		}
 
-			jsonResponse, err := json.Marshal(response)
-			if err != nil {
-				http.Error(w, `{"error": "Failed to encode response"}`, http.StatusInternalServerError)
-				return
-			}
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, `{"error": "Failed to encode response"}`, http.StatusInternalServerError)
+			return
+		}
 
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write(jsonResponse)
-		})
-	}))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResponse)
+	})
 
 	fmt.Println("Server started on port 8080")
 	err := http.ListenAndServe(":8080", handler)
