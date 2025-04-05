@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -48,6 +49,26 @@ func StartServer() {
 	addAIRoutes(aiClient, mux)
 	addEventRoutes(dynamoClient, mux)
 	addMapRoutes(mapClient, mux)
+	addItemRoutes(dynamoClient, mux)
+	addOrderRoutes(dynamoClient, mux)
+	mux.HandleFunc("/", services.LoggerMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			response := map[string]interface{}{
+				"message": "Welcome to Upgraded-Telegram Server!",
+				"updated": "2025-04-05",
+			}
+
+			jsonResponse, err := json.Marshal(response)
+			if err != nil {
+				http.Error(w, `{"error": "Failed to encode response"}`, http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(jsonResponse)
+		})
+	}))
 
 	fmt.Println("Server started on port 8080")
 	err := http.ListenAndServe(":8080", handler)
@@ -159,5 +180,45 @@ func addMapRoutes(client *maps.Client, mux *http.ServeMux) {
 	mux.HandleFunc("/maps/geocode/{address}", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
 		address := r.PathValue("address")
 		handlers.Geocode(client, w, r, address)
+	})))
+}
+
+func addItemRoutes(client *dynamodb.Client, mux *http.ServeMux) {
+	mux.HandleFunc("/items/new", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreateItem(client, w, r)
+	})))
+	mux.HandleFunc("/items/all", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetAllItems(client, w, r)
+	})))
+	mux.HandleFunc("/items/item/{id}", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		handlers.GetItemById(client, w, r, id)
+	})))
+	mux.HandleFunc("/items/item/update", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		handlers.UpdateItem(client, w, r)
+	})))
+	mux.HandleFunc("/items/item/{id}/delete", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		handlers.DeleteItem(client, w, r, id)
+	})))
+}
+
+func addOrderRoutes(client *dynamodb.Client, mux *http.ServeMux) {
+	mux.HandleFunc("/orders/new", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreateOrder(client, w, r)
+	})))
+	mux.HandleFunc("/orders/all", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetAllOrders(client, w, r)
+	})))
+	mux.HandleFunc("/orders/order/{id}", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		handlers.GetOrderById(client, w, r, id)
+	})))
+	mux.HandleFunc("/orders/order/update", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		handlers.UpdateOrder(client, w, r)
+	})))
+	mux.HandleFunc("/orders/order/{id}/delete", services.LoggerMiddleware(services.VerifyJWT(func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		handlers.DeleteOrder(client, w, r, id)
 	})))
 }
