@@ -51,10 +51,20 @@ func StartServer() {
 	addMapRoutes(mapClient, mux)
 	addItemRoutes(dynamoClient, mux)
 	addOrderRoutes(dynamoClient, mux)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	addMainRoute(mux)
+
+	fmt.Println("Server started on port 8080")
+	err := http.ListenAndServe(":8080", handler)
+	if err != nil {
+		log.Fatalf("unable to load dynamoDB tables, %v", err)
+	}
+}
+
+func addMainRoute(mux *http.ServeMux) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "Welcome to Upgraded-Telegram Server!",
-			"updated": "2025-04-05",
+			"updated": "2025-04-07",
 		}
 
 		jsonResponse, err := json.Marshal(response)
@@ -67,12 +77,6 @@ func StartServer() {
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResponse)
 	})
-
-	fmt.Println("Server started on port 8080")
-	err := http.ListenAndServe(":8080", handler)
-	if err != nil {
-		log.Fatalf("unable to load dynamoDB tables, %v", err)
-	}
 }
 
 func addUserRoutes(client *dynamodb.Client, mux *http.ServeMux) {
