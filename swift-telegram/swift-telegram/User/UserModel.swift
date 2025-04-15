@@ -8,11 +8,11 @@
 import Foundation
 import Observation
 
-struct User: Codable, Equatable {
+struct User: Codable, Identifiable, Equatable {
     var id: String
     var name: String
     var email: String
-    var password: String
+    var password: String?
     
     func encode() throws -> Data {
             let encoder = JSONEncoder()

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SuccessView: View {
+    @State var userVM: UserViewModel = UserViewModel()
     @State var currentUser: User?
     @State var jwt: String?
     @State var refreshToken: String?
@@ -46,8 +47,6 @@ struct SuccessView: View {
                 VStack {
                     Text("Success!")
                     Text(currentUser?.name ?? "No user")
-                    Text(jwt ?? "No JWT")
-                    Text(refreshToken ?? "No refresh token")
                     Button("Logout", action: {
                         logoutUser()
                     })
@@ -62,16 +61,43 @@ struct SuccessView: View {
                     .navigationDestination(isPresented: $logout) {
                         LoginView().navigationBarBackButtonHidden(true)
                     }
-                }.onAppear() {
-                    isLoading = true
-                    do {
-                        currentUser = try User.decode(from: UserDefaults.standard.object(forKey: "currentUser") as? Data ?? Data())
-                        jwt = UserDefaults.standard.string(forKey: "authToken")
-                        refreshToken = UserDefaults.standard.string(forKey: "refresh_token")
-                    } catch {
-                        errorLoading = true
+                    NavigationView {
+                                Group {
+                                    if userVM.isLoading {
+                                        ProgressView("Loading Users...")
+                                    } else if userVM.error != "" {
+                                        Text("Error: \(userVM.error)")
+                                            .foregroundColor(.red)
+                                    } else {
+                                        List(userVM.users) { user in
+                                            VStack(alignment: .leading) {
+                                                Text(user.name)
+                                                    .font(.headline)
+                                                Text(user.email)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                    }
+                                }
+                                .navigationTitle("Users")
+                    
+                    }.onAppear() {
+                        isLoading = true
+                        do {
+                            currentUser = try User.decode(from: UserDefaults.standard.object(forKey: "currentUser") as? Data ?? Data())
+                            jwt = UserDefaults.standard.string(forKey: "authToken")
+                            refreshToken = UserDefaults.standard.string(forKey: "refresh_token")
+                            Task {
+                                userVM.isLoading = true
+                                await userVM.getAllUsers()
+                                userVM.isLoading = false
+                            }
+                        } catch {
+                            errorLoading = true
+                        }
+                        isLoading = false
                     }
-                    isLoading = false
                 }
             }
         }
