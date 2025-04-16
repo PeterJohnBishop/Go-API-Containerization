@@ -8,7 +8,7 @@
 import Foundation
 import Observation
 
-@Observable class UserViewModel {
+@Observable class UserViewModel: ObservableObject {
     var user: User = User(id: "", name: "", email: "", password: "")
     var users: [User] = []
     var error: String = ""

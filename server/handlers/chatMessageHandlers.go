@@ -62,6 +62,7 @@ func CreateChat(client *dynamodb.Client, w http.ResponseWriter, r *http.Request)
 
 	newChat := map[string]types.AttributeValue{
 		"id":     &types.AttributeValueMemberS{Value: chatId},
+		"users":  &types.AttributeValueMemberSS{Value: chat.Users},
 		"active": &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", time.Now().UnixMilli())},
 	}
 
