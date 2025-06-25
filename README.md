@@ -1,4 +1,5 @@
-# upgraded-telegram
+# Containerized APIs
+### GO | HTTP | AWS [ DynamoDB, S3 ] | GoogleMaps | JWT | DOCKER
 
 A project starter providing Go Http server with JWT authenticated and rate limited endpoints. API provides user, messaging, and event CRUD operations on stored data in DynamoDB, file upload and download with S3, and basic routing, geocoding, and reverse geocoding through Google Maps API.
 
